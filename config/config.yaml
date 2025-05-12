@@ -1,6 +1,6 @@
-algorithm: OPT
+algorithm: LRU
 dataset_path: dataset
 output_dir: output
-dataset_url: https://ftp.pdl.cmu.edu/pub/datasets/twemcacheWorkload/cacheDatasets/cloudphysics/
+dataset_url: https://ftp.pdl.cmu.edu/pub/datasets/twemcacheWorkload/cacheDatasets/msr/
 num_to_test: 50
 cache_size: 512

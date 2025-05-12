@@ -7,3 +7,7 @@ output/
 data_process.py
 draw.py
 run.sh
+metablock/
+msr/
+saved_output/
+venv/

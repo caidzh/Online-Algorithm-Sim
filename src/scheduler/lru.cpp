@@ -11,6 +11,7 @@
 #include <queue>
 
 #include "scheduler.hpp"
+#include <cassert>
 
 struct LRUObject {
     uint64_t obj_id;
@@ -79,7 +80,7 @@ class LRUScheduler : public Scheduler {
 
                 std :: set<LRUObject> :: iterator it;
                 if ((it = is_in_cache(obj_id)) == this -> cache_set.end()) {
-                    assert (*it.obj_id != obj_id);
+                    // assert (*it.obj_id != obj_id);
                     // Not in the cache
                     result.cache_misses++;
 

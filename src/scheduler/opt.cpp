@@ -15,9 +15,9 @@
 
 struct OPTObject {
     uint64_t obj_id;
-    int64_t next_access;
+    uint64_t next_access;
 
-    OPTObject(const uint64_t obj_id, const int64_t next_access) {
+    OPTObject(const uint64_t obj_id, const uint64_t next_access) {
         this -> obj_id = obj_id;
         this -> next_access = next_access;
     }
