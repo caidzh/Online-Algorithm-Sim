@@ -1,4 +1,4 @@
-algorithm: LRU
+algorithm: SVM
 dataset_path: dataset
 output_dir: output
 dataset_url: https://ftp.pdl.cmu.edu/pub/datasets/twemcacheWorkload/cacheDatasets/msr/

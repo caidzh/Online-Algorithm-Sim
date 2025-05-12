@@ -17,6 +17,10 @@ enum Status {
     FirstAppear, Miss, Hit
 };
 
+class OPTObject {
+    
+};
+
 class OPTgen {
 public:
     uint64_t CacheSize;
@@ -58,16 +62,17 @@ class SVMObject {
 public:
     bool IsInCache;
     uint64_t obj_id;
+    uint64_t LastVisitedTime;
     int64_t CacheFriend;
     std::map<uint64_t, int64_t> weights;
 
-    SVMObject(uint64_t obj_id, int64_t CacheFriend) : 
-        IsInCache(false), obj_id(obj_id), CacheFriend(CacheFriend) {
+    SVMObject(uint64_t obj_id, uint64_t LastVisitedTime, int64_t CacheFriend) : 
+        IsInCache(false), obj_id(obj_id), LastVisitedTime(LastVisitedTime), CacheFriend(CacheFriend) {
         weights = std::map<uint64_t, int64_t>();
     }
 
-    SVMObject(bool IsInCache, uint64_t obj_id, int64_t CacheFriend) : 
-        IsInCache(IsInCache), obj_id(obj_id), CacheFriend(CacheFriend) {
+    SVMObject(bool IsInCache, uint64_t obj_id, uint64_t LastVisitedTime, int64_t CacheFriend) : 
+        IsInCache(IsInCache), obj_id(obj_id), LastVisitedTime(LastVisitedTime), CacheFriend(CacheFriend) {
         weights = std::map<uint64_t, int64_t>();
     }
 };
@@ -96,17 +101,22 @@ public:
 class CacheObject {
 public:
     uint64_t obj_id;
+    uint64_t LastVisitedTime;
     int64_t CacheFriend;
 
-    CacheObject(uint64_t obj_id, int64_t CacheFriend) : 
-        obj_id(obj_id), CacheFriend(CacheFriend) {
+    CacheObject(uint64_t obj_id, uint64_t LastVisitedTime,int64_t CacheFriend) : 
+        obj_id(obj_id), LastVisitedTime(LastVisitedTime), CacheFriend(CacheFriend) {
 
     }
 
     bool operator < (const CacheObject rhs) const {
         if (CacheFriend != rhs.CacheFriend)
             return CacheFriend < rhs.CacheFriend;
-        return obj_id < rhs.obj_id;
+        else {
+            if (LastVisitedTime != rhs.LastVisitedTime)
+                return LastVisitedTime < rhs.LastVisitedTime;
+            return obj_id < rhs.obj_id;
+        }
     }
 };
 
@@ -143,24 +153,26 @@ public:
     /*
     Insert and delete should change Cache and ObjInfo
     */
-    void Insert(uint64_t obj_id, int64_t CacheFriend) {
+    void Insert(uint64_t obj_id, uint64_t LastVisitedTime, int64_t CacheFriend) {
         auto it = ObjInfo.find(obj_id);
         if (it != ObjInfo.end() && it -> second.IsInCache) {
-            auto Cache_it = Cache.find(CacheObject(obj_id, it -> second.CacheFriend));
+            auto Cache_it = Cache.find(CacheObject(obj_id, it -> second.LastVisitedTime, it -> second.CacheFriend));
             Cache.erase(Cache_it);
-            Cache.insert(CacheObject(obj_id, CacheFriend));
+            Cache.insert(CacheObject(obj_id, LastVisitedTime, CacheFriend));
             it -> second.CacheFriend = CacheFriend;
+            it -> second.LastVisitedTime = LastVisitedTime;
             it -> second.IsInCache = true;
         } else {
             if (Cache.size() == this -> cache_size)
                 Delete();
-            Cache.insert(CacheObject(obj_id, CacheFriend));
+            Cache.insert(CacheObject(obj_id, LastVisitedTime, CacheFriend));
             auto it = ObjInfo.find(obj_id);
             if (it != ObjInfo.end()){
                 it -> second.CacheFriend = CacheFriend;
+                it -> second.LastVisitedTime = LastVisitedTime;
                 it -> second.IsInCache = true;
             } else {
-                ObjInfo.emplace(obj_id, SVMObject(true, obj_id, CacheFriend));
+                ObjInfo.emplace(obj_id, SVMObject(true, obj_id, LastVisitedTime, CacheFriend));
             }
         }
     }
@@ -178,23 +190,18 @@ public:
         for (auto &request : requests) {
             auto obj_id = request.obj_id;
             auto status = Gen -> TimeStampInc(obj_id);
-
+            auto TimeStamp = Gen -> TimeStamp;
             auto IsInCache = CheckInCache(obj_id);
             if (!IsInCache)
                 result.cache_misses++;
-            
             int64_t prediction = 0;
-
             auto it1 = ObjInfo.find(obj_id);
-            // std::cout<<obj_id<<":";
             if (it1 != ObjInfo.end()) {
                 for (auto v = PCRegister -> elements.begin();
                     v != PCRegister -> elements.end(); v++) {
-                    // std::cout<<*v<<" ";
                     auto it = it1 -> second.weights.find(*v);
                     auto NotBlank = (it != it1 -> second.weights.end());
                     if (NotBlank) {
-                        // std::cout<<obj_id<<" and "<<*v<<std::endl;
                         prediction += it->second;
                     }
                     if (status == Hit) {
@@ -202,21 +209,22 @@ public:
                             it1 -> second.weights.emplace(*v, 0);
                             it = it1 -> second.weights.find(*v);
                         }
-                        it -> second += LearningRate;
+                        if (it -> second <= TrainingThreshold)
+                            it -> second += LearningRate;
                     }
                     else {
                         if (!NotBlank) {
                             it1 -> second.weights.emplace(*v, 0);
                             it = it1 -> second.weights.find(*v);
                         }
-                        it -> second -= LearningRate;
+                        if (it -> second >= -TrainingThreshold)
+                            it -> second -= LearningRate;
                     }
                 }
             }
-            Insert(obj_id, prediction);
+            Insert(obj_id, TimeStamp, prediction);
             PCRegister -> Insert(obj_id);
         }
-
         return result;
     }
 };
