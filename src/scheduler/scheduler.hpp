@@ -27,9 +27,11 @@ class Result {
 class Scheduler {
     public:
         uint64_t cache_size;
+        int64_t PredictionDivide;
 
-        Scheduler(uint64_t cache_size) {
+        Scheduler(uint64_t cache_size, int64_t PredictionDivide) {
             this -> cache_size = cache_size;
+            this -> PredictionDivide = PredictionDivide;
         }
 
         virtual Result run(std :: vector<Request>& requests) = 0;

@@ -17,7 +17,7 @@ class FIFOScheduler : public Scheduler {
         std :: queue<uint64_t> cache;
         std :: set<uint64_t> cache_set;
 
-        FIFOScheduler(uint64_t cache_size) : Scheduler(cache_size) {
+        FIFOScheduler(uint64_t cache_size, int64_t PredictionDivide) : Scheduler(cache_size, PredictionDivide) {
             // We define a queue and a set here to efficiently
             // 1. Check if an object is in the cache
             // 2. Remove the oldest object from the cache
@@ -58,6 +58,6 @@ namespace py = pybind11;
 PYBIND11_MODULE(fifo, m) {
     // Bind the FIFO scheduler
     py::class_<FIFOScheduler>(m, "FIFO")
-        .def(py::init<const uint64_t>())
+        .def(py::init<const uint64_t, const int64_t>())
         .def("run", &FIFOScheduler::run);
 }

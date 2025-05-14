@@ -17,10 +17,6 @@ enum Status {
     FirstAppear, Miss, Hit
 };
 
-class OPTObject {
-    
-};
-
 class OPTgen {
 public:
     uint64_t CacheSize;
@@ -131,7 +127,7 @@ public:
     std::set<CacheObject> Cache;
     std::map<uint64_t, SVMObject> ObjInfo;
 
-    SVMScheduler(uint64_t cache_size) : Scheduler(cache_size) {
+    SVMScheduler(uint64_t cache_size, int64_t PredictionDivide) : Scheduler(cache_size, PredictionDivide) {
         Gen = new OPTgen(cache_size);
         PCRegister = new PCHR();
         Cache = std::set<CacheObject>();
@@ -222,6 +218,7 @@ public:
                     }
                 }
             }
+            prediction /= PredictionDivide;
             Insert(obj_id, TimeStamp, prediction);
             PCRegister -> Insert(obj_id);
         }
@@ -234,6 +231,6 @@ namespace py = pybind11;
 PYBIND11_MODULE(svm, m) {
     // Bind the SVM scheduler
     py::class_<SVMScheduler>(m, "SVM")
-        .def(py::init<const uint64_t>())
+        .def(py::init<const uint64_t, const int64_t>())
         .def("run", &SVMScheduler::run);
 }

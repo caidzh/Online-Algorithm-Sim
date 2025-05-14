@@ -31,7 +31,7 @@ class LFUScheduler : public Scheduler {
         std :: set<LFUObject> cache;
         std :: set<LFUObject, std :: function<bool(const LFUObject&, const LFUObject&)>> cache_set;
 
-        LFUScheduler(uint64_t cache_size) : Scheduler(cache_size), 
+        LFUScheduler(uint64_t cache_size, int64_t PredictionDivide) : Scheduler(cache_size, PredictionDivide), 
             cache_set([](const LFUObject& a, const LFUObject& b) {
                 return a.obj_id < b.obj_id;
             }) {
@@ -119,6 +119,6 @@ namespace py = pybind11;
 PYBIND11_MODULE(lfu, m) {
     // Bind the LFU scheduler
     py::class_<LFUScheduler>(m, "LFU")
-        .def(py::init<const uint64_t>())
+        .def(py::init<const uint64_t, const int64_t>())
         .def("run", &LFUScheduler::run);
 }

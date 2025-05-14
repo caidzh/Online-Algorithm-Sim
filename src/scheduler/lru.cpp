@@ -32,7 +32,7 @@ class LRUScheduler : public Scheduler {
         std :: set<LRUObject> cache;
         std::set<LRUObject, std::function<bool(const LRUObject&, const LRUObject&)>> cache_set;
 
-        LRUScheduler(uint64_t cache_size) : Scheduler(cache_size), 
+        LRUScheduler(uint64_t cache_size, int64_t PredictionDivide) : Scheduler(cache_size, PredictionDivide), 
             cache_set([](const LRUObject& a, const LRUObject& b) {
                 return a.obj_id < b.obj_id;
             }) {
@@ -121,6 +121,6 @@ namespace py = pybind11;
 PYBIND11_MODULE(lru, m) {
     // Bind the LRU scheduler
     py::class_<LRUScheduler>(m, "LRU")
-        .def(py::init<const uint64_t>())
+        .def(py::init<const uint64_t, const int64_t>())
         .def("run", &LRUScheduler::run);
 }

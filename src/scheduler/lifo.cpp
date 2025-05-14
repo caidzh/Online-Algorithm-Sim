@@ -17,7 +17,7 @@ class LIFOScheduler : public Scheduler {
         std :: deque<uint64_t> cache;
         std :: set<uint64_t> cache_set;
 
-        LIFOScheduler(uint64_t cache_size) : Scheduler(cache_size) {
+        LIFOScheduler(uint64_t cache_size, int64_t PredictionDivide) : Scheduler(cache_size, PredictionDivide) {
             // We define a dequeue and a set here to efficiently
             // 1. Check if an object is in the cache
             // 2. Remove the oldest object from the cache
@@ -58,6 +58,6 @@ namespace py = pybind11;
 PYBIND11_MODULE(lifo, m) {
     // Bind the LIFO scheduler
     py::class_<LIFOScheduler>(m, "LIFO")
-        .def(py::init<const uint64_t>())
+        .def(py::init<const uint64_t, const int64_t>())
         .def("run", &LIFOScheduler::run);
 }

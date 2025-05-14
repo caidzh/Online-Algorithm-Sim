@@ -32,7 +32,7 @@ class OPTScheduler : public Scheduler {
         std :: set<OPTObject> cache;
         std::set<OPTObject, std::function<bool(const OPTObject&, const OPTObject&)>> cache_set;
 
-        OPTScheduler(uint64_t cache_size) : Scheduler(cache_size), 
+        OPTScheduler(uint64_t cache_size, int64_t PredictionDivide) : Scheduler(cache_size, PredictionDivide), 
             cache_set([](const OPTObject& a, const OPTObject& b) {
                 return a.obj_id < b.obj_id;
             }) {
@@ -107,6 +107,6 @@ namespace py = pybind11;
 PYBIND11_MODULE(opt, m) {
     // Bind the OPT scheduler
     py::class_<OPTScheduler>(m, "OPT")
-        .def(py::init<const uint64_t>())
+        .def(py::init<const uint64_t, const int64_t>())
         .def("run", &OPTScheduler::run);
 }

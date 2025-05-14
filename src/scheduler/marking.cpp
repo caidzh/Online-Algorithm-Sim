@@ -80,7 +80,7 @@ class MarkingScheduler : public Scheduler {
         UnmarkedSet<uint64_t> unmarked;
         std :: set<uint64_t> cache_set;
 
-        MarkingScheduler(uint64_t cache_size) : Scheduler(cache_size) {
+        MarkingScheduler(uint64_t cache_size, int64_t PredictionDivide) : Scheduler(cache_size, PredictionDivide) {
             // We define one two sets and one defined helper set to efficiently
             // 1. Check if an object is in the cache
             // 2. Mark the object that is accessed
@@ -142,6 +142,6 @@ namespace py = pybind11;
 PYBIND11_MODULE(marking, m) {
     // Bind the LRU scheduler
     py::class_<MarkingScheduler>(m, "Marking")
-        .def(py::init<const uint64_t>())
+        .def(py::init<const uint64_t, const int64_t>())
         .def("run", &MarkingScheduler::run);
 }
